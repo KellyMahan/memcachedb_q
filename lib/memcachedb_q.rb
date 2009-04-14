@@ -44,7 +44,7 @@ class MemcachedbQ
     temp_que = @cache_db.get_range("#{@que_name}", "#{@que_name}#{Time.now.to_f.to_s}~")
     totalque.merge!(temp_que)
     while temp_que ? temp_que.length == 100 : false 
-      temp_que = @cache_db.get_range("#{que.keys.sort.last}", "#{@que_name}#{Time.now.to_f.to_s}~", 1)
+      temp_que = @cache_db.get_range("#{totalque.keys.sort.last}", "#{@que_name}#{Time.now.to_f.to_s}~", 1)
       totalque.merge!(temp_que)
     end
     return totalque
