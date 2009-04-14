@@ -19,7 +19,7 @@ class MemcachedbQ
   end
   
   def add(data, que_time = Time.now)
-    @cache_db.set("#{@que_name}-#{que_time.to_f.to_s}-#{rand(9999)}", data.to_yaml)
+    @cache_db.set("#{@que_name}#{que_time.to_f.to_s.gsub(/\./,"")}#{rand(9999)}", data.to_yaml)
   end
   
   def remove(key)
@@ -27,7 +27,7 @@ class MemcachedbQ
   end
   
   def next
-    item = @cache_db.get_range("#{@que_name}", "#{@que_name}-#{Time.now.to_f.to_s}~", 0, 1, 1)
+    item = @cache_db.get_range("#{@que_name}", "#{@que_name}#{Time.now.to_f.to_s}~", 0, 1, 1)
     if item
       data = item[item.keys[0]].f_yaml
       self.remove(item.keys[0])
@@ -39,10 +39,10 @@ class MemcachedbQ
   
   def get_que
     totalque = {}
-    temp_que = @cache_db.get_range("#{@que_name}", "#{@que_name}-#{Time.now.to_f.to_s}~")
+    temp_que = @cache_db.get_range("#{@que_name}", "#{@que_name}#{Time.now.to_f.to_s}~")
     totalque.merge!(temp_que)
     while temp_que ? temp_que.length == 100 : false 
-      temp_que = @cache_db.get_range("#{que.keys.sort.last}", "#{@que_name}-#{Time.now.to_f.to_s}~", 1)
+      temp_que = @cache_db.get_range("#{que.keys.sort.last}", "#{@que_name}#{Time.now.to_f.to_s}~", 1)
       totalque.merge!(temp_que)
     end
     return totalque
@@ -50,7 +50,7 @@ class MemcachedbQ
   
   def get_future_que
     totalque = {}
-    temp_que = @cache_db.get_range("#{@que_name}-#{Time.now.to_f.to_s}", "#{@que_name}~", 1)
+    temp_que = @cache_db.get_range("#{@que_name}#{Time.now.to_f.to_s}", "#{@que_name}~", 1)
     totalque.merge!(temp_que)
     while temp_que ? temp_que.length == 100 : false 
       temp_que = @cache_db.get_range("#{que.keys.sort.last}", "#{@que_name}~", 1)
