@@ -12,7 +12,7 @@ class MemcachedbQ
   
   attr_accessor :cache_db
   attr_accessor :que_name
-  attr_accessor :name_space
+  attr_accessor :name_space #TODO find out why I need to include namespace with get_range and then remove
   
   def initialize(name, name_space)
     @name_space = name_space
