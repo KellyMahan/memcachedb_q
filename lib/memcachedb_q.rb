@@ -21,7 +21,9 @@ class MemcachedbQ
   end
   
   def add(data, que_time = Time.now)
-    @cache_db.set("#{@que_name}#{que_time.to_f.to_s.gsub(/\./,"")}#{rand(9999)}", data.to_yaml)
+    key = "#{@que_name}#{que_time.to_f.to_s.gsub(/\./,"")}#{rand(9999)}"
+    @cache_db.set(key, data.to_yaml)
+    return key
   end
   
   def remove(key)
