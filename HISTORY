@@ -1,0 +1,11 @@
+== 1.0
+
+  first working version
+  requires 
+    spawn plugin
+    memcachedb-client gem
+    memcachedb server
+
+== 0.1
+
+  first working beta

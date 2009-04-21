@@ -1,1 +1,21 @@
 MemcacheDB Que system.
+
+example for adding a runner to the que
+
+que = MemcachedbQ.new(:notices) #uses the :notices que
+que.add_runner(:notifier, :deliver_customer_order, order.id) #adds a runner
+    # in this case :notifier relates to an actionmailer class
+    # :deliver_customer_order is a method within that class
+    # and the order.id is the value passed along to that method.
+    # at this point the information should be in the memcachedb
+    # if for some reason adding the runner fails it should 
+    # immediately run the class.method(value) combination
+que.run
+    # que.run is used to fork a process to handle the specific :notices runner que
+    # it checks before forking if there is anything to run, or if a process
+    # is already running a forked que for notices
+    # also instead of using que.run, you can just run the rake task to handle all
+    # runners in the config file. the simplest way is to setup a cronjob to run
+    # every minute. At the most you will only have as many forked processes as 
+    # there are ques
+    

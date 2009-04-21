@@ -1,0 +1,32 @@
+1.
+
+download and install memcachedb
+
+http://memcachedb.org/
+
+MemcachedbQ requires the lastest 1.2.1 beta release.
+
+2.
+
+install the memcachedb-client gem from github
+
+3.
+
+install this plugin
+
+./script/plugin install git@github.com:KellyMahan/memcachedb_q.git
+
+copy the rake task and yml config to the appropriate places
+
+4.
+
+start up the memcachedb service
+
+on my local box I use these aliases
+
+alias memcachedb_start="sudo memcachedb -p21201 -d -r -u root -f 21201.db -H /etc/memcachedb -N -P /etc/memcachedb/logs/21201.pid"
+alias memcachedb_stop="sudo kill \`cat /etc/memcachedb/logs/21201.pid\`"
+
+5.
+
+start your rails app.
