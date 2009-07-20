@@ -18,4 +18,13 @@ que.run
     # runners in the config file. the simplest way is to setup a cronjob to run
     # every minute. At the most you will only have as many forked processes as 
     # there are ques
-    
+
+
+added option to repeat runners.
+
+que.add_runner(:notifier, :deliver_customer_order, order.id, :repeats=>30)
+
+:repeats is in seconds
+must use :repeat_name for repeats
+
+this will add a new runner just before running the existing job. If you originally set a time to run then it will add to that time with repeats. If no :run_time was set it will set a run time of Time.now when it runs for the first time.

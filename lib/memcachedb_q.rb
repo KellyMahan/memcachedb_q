@@ -7,8 +7,7 @@ class String
 end
 
 class MemcachedbQ
-  
-  
+    
   include Spawn
     
   attr_accessor :cache_db
@@ -31,23 +30,31 @@ class MemcachedbQ
     options = data.extract_options!
     begin
       if options[:run_time]
-        self.add(
+        
+        options[:run_time] = starting_runtime(options[:run_time], options[:repeats])
+        key = self.add(
           {
             :class=>qclass,
             :method=>method,
-            :data=>data
+            :data=>data,
+            :options=>options
           },
           options[:run_time]
         )
+        if options[:repeat_name]
+          set("repeat_#{options[:repeat_name]}", key)
+        end
       else
-        self.add(
+        key = self.add(
           {
             :class=>qclass,
             :method=>method,
-            :data=>data
+            :data=>data,
+            :options=>options
           }
         )
       end
+      return key
     rescue
       puts "************* memcache_q error: skipping que"
       puts "#{qclass.to_s.camelize}.send(#{method},#{data})"
@@ -69,8 +76,22 @@ class MemcachedbQ
       if data = self.next
         spawnid = spawn do
           while data
-            eval(data[:class].to_s.camelize).send(data[:method], *data[:data])
+            puts "********** memcachedb_q ***********\n\trunning: #{data[:class]}.#{data[:method]}\n"
+            variables = data[:data]
+            options = data[:options]
+            begin
+              if (repeats = options[:repeats]) && (get("repeat_#{options[:repeat_name]}") == data[:key])
+                options[:run_time] = (options[:run_time]||Time.now) + repeats
+                self.add_runner(data[:class].to_sym, data[:method].to_sym, :repeat_name=> options[:repeat_name], :repeats=>repeats, :run_time=>options[:run_time], *variables)
+              else
+                puts "keys don't match ignoring repeat"
+              end
+              eval(data[:class].to_s.camelize).send(data[:method], *variables)
+            rescue => e
+              puts "\t#{e.message}\n#{e.backtrace.join("\n")}"
+            end
             data = self.next
+            puts "********** memcachedb_q ***********"
           end
         end
         self.pid = spawnid.handle
@@ -114,16 +135,31 @@ class MemcachedbQ
     @cache_db.delete(key)
   end
   
+  def remove_all
+    self.get_all.keys.each do |key|
+      @cache_db.delete(key)
+    end
+  end
+  
+  
   alias :delete :remove
   
   
   def next
     item = @cache_db.get_range("#{@que_name}", "#{@que_name}#{Time.now.to_f.to_s}~", 0, 1, 1)
     begin
-      data = item[item.keys[0]].f_yaml
-      self.remove(item.keys[0])
-      return data
-    rescue
+      if item != {}
+        #puts item.class
+        data = item[item.keys[0]].f_yaml
+        data[:key] = item.keys[0]
+        self.remove(item.keys[0])
+        return data
+      else
+        return nil
+      end
+    rescue => e
+      puts e.message
+      puts e.backtrace.join("\n")
       nil
     end
   end
@@ -161,5 +197,10 @@ class MemcachedbQ
     return totalque
   end
   
+  def starting_runtime(runtime, repeats)
+    return runtime if (runtime > Time.now) || (repeats==nil)
+    x = ((Time.now-runtime)/repeats).to_i + 1
+    return runtime+(repeats*x)
+  end
   
 end
