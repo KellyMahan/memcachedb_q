@@ -30,7 +30,6 @@ class MemcachedbQ
     options = data.extract_options!
     begin
       if options[:run_time]
-        
         options[:run_time] = starting_runtime(options[:run_time], options[:repeats])
         key = self.add(
           {
@@ -53,6 +52,9 @@ class MemcachedbQ
             :options=>options
           }
         )
+        if options[:repeat_name]
+          set("repeat_#{options[:repeat_name]}", key)
+        end
       end
       return key
     rescue
