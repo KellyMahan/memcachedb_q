@@ -88,7 +88,7 @@ class MemcachedbQ
               else
                 puts "keys don't match ignoring repeat"
               end
-              eval(data[:class].to_s.camelize).send(data[:method], *variables)
+              eval(data[:class].to_s.camelize).send(data[:method], data[:key], *variables)
             rescue => e
               puts "\t#{e.message}\n#{e.backtrace.join("\n")}"
             end
